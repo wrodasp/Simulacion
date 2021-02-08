@@ -73,7 +73,7 @@ if __name__ = "__main__":
 	driver.get("https://www.facebook.com/")
 	driver.maximize_window()
 	driver.find_element(By.ID, "email").click()
-	driver.find_element(By.ID, "email").send_keys("correo.ejemplo@mail.com") #Reemplazar por datos personales
+	driver.find_element(By.ID, "email").send_keys("example@mail.com") #Reemplazar por datos personales
 	driver.find_element(By.ID, "pass").click()
 	driver.find_element(By.ID, "pass").send_keys("***********") #Reemplazar por datos personales
 	driver.find_element(By.ID, "u_0_b").click()
@@ -232,3 +232,64 @@ if __name__ = "__main__":
 
 	time.sleep(5)
 	driver.quit()
+	
+	#Iniciamos Selenium con el navegador Google Chrome
+	chrome_options = webdriver.ChromeOptions()
+	prefs = {"profile.default_content_setting_values.notifications" : 2}
+	chrome_options.add_experimental_option("prefs", prefs)
+	driver = webdriver.Chrome(options = chrome_options)
+
+	#Iniciamos sesión en la cuenta de Facebook
+	driver.get("https://www.facebook.com/")
+	driver.maximize_window()
+	driver.find_element(By.ID, "email").click()
+	driver.find_element(By.ID, "email").send_keys("example@mail.com")
+	driver.find_element(By.ID, "pass").click()
+	driver.find_element(By.ID, "pass").send_keys("******")
+	driver.find_element(By.ID, "u_0_b").click()
+
+	#Ingresamos a la publicación del Flyer
+	time.sleep(5)
+	driver.get("https://www.facebook.com/photo/?fbid=1847535578735935&set=a.105895986233245")
+
+	#Iniciamos la recoleccion de datos (Comentarios en este caso)
+	comentarios = []
+
+	time.sleep(5)
+	lista_comentarios = driver.find_elements(
+    		By.XPATH, 
+    		"//div[@style='text-align: start;']"
+	)
+
+	lista_usuarios = driver.find_elements(
+    		By.XPATH, 
+    		"//a[@class='oajrlxb2 g5ia77u1 qu0x051f esr5mh6w e9989ue4 r7d6kgcz rq0escxv nhd2j8a9 nc684nl6 p7hjln8o kvgmc6g5 cxmmr5t8 oygrvhab hcukyx3x jb3vyjys rz4wbd8a qt6c0cv9 a8nywdso i1ao9s8h esuyzwwr f1sip0of lzcic4wl gmql0nx0 gpro0wi8']"
+	)
+
+	for usuario, comentario in zip(lista_usuarios, lista_comentarios):
+	    comentarios.append({"usuario": usuario.text, "comentario": comentario.text})
+    
+	#Cerramos sesión
+	driver.get("https://www.facebook.com/")
+
+	time.sleep(5)
+	WebDriverWait(driver, 10).until(
+    		EC.presence_of_element_located((
+        		By.XPATH, 
+        		"//*[@id='mount_0_0']/div/div[1]/div/div[2]/div[4]/div[1]/span/div/div[1]"
+	))).click()
+
+	time.sleep(5)
+	WebDriverWait(driver, 10).until(
+    		EC.presence_of_element_located((
+        		By.XPATH, 
+        		"//*[@id='mount_0_0']/div/div[1]/div/div[2]/div[4]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div[3]/div/div[4]/div"
+	))).click()
+
+	time.sleep(5)
+	driver.quit()
+
+	informe = open("/home/wilson/Documentos/Simulacion/ExamenFinal/ComentariosFlyer.csv", "w")
+	escritor = csv.DictWriter(informe, fieldnames = ["usuario","comentario"])
+	escritor.writeheader()
+	escritor.writerows(comentarios)
